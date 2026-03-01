@@ -1,19 +1,19 @@
 const express = require('express');
+const conectarBanco = require('./database'); // 1. importação da "receita" do banco de dados
+
 const app = express();
 const PORTA = 3000;
 
-// 1. O Tradutor de JSON
 app.use(express.json());
 
-// 2. Nossa base de dados temporária (agora no plural, para bater com o código de baixo)
-const alertasMonitoramento = [];
+let banco; // Variável global para guardar a nossa conexão com o banco
 
 // Rota GET (Boas-vindas)
 app.get('/', (req, res) => {
-    res.send('API de Transparência Pública operando com dados reais!');
+    res.send('API de Transparência Pública operando com Banco de Dados SQL!');
 });
 
-// Rota GET (Busca de deputados)
+// Rota GET (Busca de deputados nos dados abertos)
 app.get('/analise/deputados', async (req, res) => {
     try {
         const respostaGoverno = await fetch('https://dadosabertos.camara.leg.br/api/v2/deputados');
@@ -25,8 +25,7 @@ app.get('/analise/deputados', async (req, res) => {
             let partido = deputado.siglaPartido;
             if (contagemPorPartido[partido]) {
                 contagemPorPartido[partido] += 1;
-            }
-            else {
+            } else {
                 contagemPorPartido[partido] = 1;
             }
         }
@@ -35,37 +34,48 @@ app.get('/analise/deputados', async (req, res) => {
             totalDeputadosAtivos: listaDeputados.length,
             distribuicaoPartidario: contagemPorPartido
         });
-    }
-    catch (erro) {
+    } catch (erro) {
         console.error('Falha ao buscar dados:', erro);
         res.status(500).json ({erro: 'Falha ao se comunicar com o Portal da Transparência.'});
     }
 });
 
-// Rota POST (Cadastro de alertas)
-app.post('/alertas', (req, res) => {
-    const novoAlerta = req.body; // Pega o JSON que o usuário enviou
+// Rota POST (Cadastro de alertas - AGORA COM SQL)
+app.post('/alertas', async (req, res) => {
+    const novoAlerta = req.body;
 
-    // Validação de segurança
     if (!novoAlerta.partido || !novoAlerta.motivo) {
         return res.status(400).json ({ erro: 'Por favor, envie o partido e o motivo do alerta.'});
     }
 
-    // Cria um ID e a data de hoje para o alerta
-    novoAlerta.id = alertasMonitoramento.length + 1;
-    novoAlerta.dataCriacao = new Date();
+    try {
+        const dataAtual = new Date().toISOString(); // Padrão universal de datas
 
-    // Salva na nossa lista
-    alertasMonitoramento.push(novoAlerta);
+        // 2. Inserindo dados na tabela
+        // usar as interrogações (?, ?, ?) para evitar ataques de hackers chamados "SQL Injection".
+        const resultado = await banco.run(
+            `INSERT INTO alertas (partido, motivo, data_criacao) VALUES (?, ?, ?)`,
+            [novoAlerta.partido, novoAlerta.motivo, dataAtual]
+        );
 
-    // Devolve Status 201 (Criado com sucesso)
-    res.status(201).json({
-        mensagem: 'Alerta cadastrado com sucesso!',
-        alertaSalvo : novoAlerta
-    });
+        // 3. O banco SQLite devolve automaticamente o "lastID" (o ID que ele acabou de gerar)
+        res.status(201).json({
+            mensagem: 'Alerta salvo no Banco de Dados com sucesso!',
+            idGerado: resultado.lastID
+        });
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).json({ erro: 'Falha ao salvar no banco de dados.' });
+    }
 });
 
-// 3. O "botão de ligar" vai SEMPRE por último e só aparece uma vez!
-app.listen(PORTA, () => {
-    console.log(`Servidor Fullstack rodando na porta ${PORTA}!`);
+// 4. Primeiro ligar o Banco, depois o Servidor.
+conectarBanco().then((conexaoPronta) => {
+    banco = conexaoPronta; // Guarda a conexão estabelecida na nossa variável
+    
+    app.listen(PORTA, () => {
+        console.log(`Servidor e Banco de Dados (SQLite) rodando na porta ${PORTA}! 💾`);
+    });
+}).catch((erro) => {
+    console.error("Erro fatal ao conectar no banco:", erro);
 });
