@@ -2,11 +2,18 @@ const express = require('express');
 const app = express();
 const PORTA = 3000;
 
+// 1. O Tradutor de JSON
+app.use(express.json());
+
+// 2. Nossa base de dados temporária (agora no plural, para bater com o código de baixo)
+const alertasMonitoramento = [];
+
+// Rota GET (Boas-vindas)
 app.get('/', (req, res) => {
-    res.send('API de Transferência Pública operando com dados reais!');
+    res.send('API de Transparência Pública operando com dados reais!');
 });
 
-// 
+// Rota GET (Busca de deputados)
 app.get('/analise/deputados', async (req, res) => {
     try {
         const respostaGoverno = await fetch('https://dadosabertos.camara.leg.br/api/v2/deputados');
@@ -35,6 +42,30 @@ app.get('/analise/deputados', async (req, res) => {
     }
 });
 
+// Rota POST (Cadastro de alertas)
+app.post('/alertas', (req, res) => {
+    const novoAlerta = req.body; // Pega o JSON que o usuário enviou
+
+    // Validação de segurança
+    if (!novoAlerta.partido || !novoAlerta.motivo) {
+        return res.status(400).json ({ erro: 'Por favor, envie o partido e o motivo do alerta.'});
+    }
+
+    // Cria um ID e a data de hoje para o alerta
+    novoAlerta.id = alertasMonitoramento.length + 1;
+    novoAlerta.dataCriacao = new Date();
+
+    // Salva na nossa lista
+    alertasMonitoramento.push(novoAlerta);
+
+    // Devolve Status 201 (Criado com sucesso)
+    res.status(201).json({
+        mensagem: 'Alerta cadastrado com sucesso!',
+        alertaSalvo : novoAlerta
+    });
+});
+
+// 3. O "botão de ligar" vai SEMPRE por último e só aparece uma vez!
 app.listen(PORTA, () => {
-    console.log('Servidor Fullstack rodando na porta ${PORTA}!');
+    console.log(`Servidor Fullstack rodando na porta ${PORTA}!`);
 });
