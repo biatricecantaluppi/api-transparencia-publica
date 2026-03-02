@@ -69,6 +69,23 @@ app.post('/alertas', async (req, res) => {
     }
 });
 
+// rota GET (busca de alertas salvos no banco de dados)
+app.get('/alertas', async (req, res) => {
+    try {
+        // No SQL: o 'SELECT *' puxa todas as colunas de todos os registros
+        //usar banco.all() para lista completa
+        const todosOsAlertas = await banco.all('SELECT * FROM alertas');
+
+        res.status(200).json({
+            status: 'Sucesso',
+            totalAlertaSalvos: todosOsAlertas.length,
+            dados: todosOsAlertas
+        });
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).json({erro: 'Falha ao buscar os alertas no banco de dados.'});
+    }
+});
 // 4. Primeiro ligar o Banco, depois o Servidor.
 conectarBanco().then((conexaoPronta) => {
     banco = conexaoPronta; // Guarda a conexão estabelecida na nossa variável
