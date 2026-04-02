@@ -18,7 +18,7 @@ O sistema atua em duas frentes:
 
 ---
 
-## Como executar o projeto localmente (Setup)
+## Como executar o projeto localmente 
 
 Pré-requisito: É necessário ter o **Node.js** instalado na sua máquina (verifique digitando `node -v` no terminal).
 
