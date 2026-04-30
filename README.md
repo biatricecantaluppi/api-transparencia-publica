@@ -1,20 +1,31 @@
-# Monitoramento Parlamentar API
+# Pipeline de Ingestão de Dados Públicos: Monitoramento Parlamentar 🏛️
 
-Um serviço backend desenvolvido em Node.js projetado para consumir dados abertos do governo brasileiro e gerenciar um sistema interno de alertas políticos. 
+Este projeto é um serviço especializado no consumo, tratamento e monitoramento de dados provenientes do Portal de Dados Abertos do Governo Brasileiro. O foco principal é a criação de um fluxo de dados (pipeline) que integra informações públicas com critérios personalizados de fiscalização política.
 
-Este projeto foi construído como parte prática do curso de Análise e Desenvolvimento de Sistemas, com foco em integração de APIs de terceiros (Governo Federal) e persistência de dados utilizando bancos relacionais.
+##  Objetivo do Projeto
+Centralizar e estruturar dados governamentais para facilitar a análise da distribuição partidária e permitir o monitoramento customizado de atividades parlamentares através de um sistema de alertas.
 
-## O problema que este projeto resolve
-O sistema atua em duas frentes:
-1. Conecta-se diretamente ao Portal de Dados Abertos da Câmara dos Deputados para processar e retornar a atual distribuição partidária.
-2. Fornece uma interface de comunicação (CRUD) para que o usuário possa cadastrar, consultar, atualizar e deletar motivos de monitoramento ou fiscalização sobre partidos específicos.
+##  Tecnologias e Ferramentas
+* **Ambiente:** Node.js
+* **Framework de Serviço:** Express.js
+* **Armazenamento e Estruturação:** SQLite (Banco de Dados Relacional)
+* **Ingestão de Dados:** Fetch API nativa para consumo de dados externos da Câmara dos Deputados.
 
-## Stack Tecnológico
-- **Node.js**: Ambiente de execução.
-- **Express.js**: Roteamento e middlewares.
-- **SQLite / SQLite3**: Banco de dados relacional leve para armazenamento local.
-- **CORS**: Liberação de acesso para futuras integrações com o Frontend.
-- **Fetch API nativa**: Para requisições HTTP externas.
+##  Fluxo de Dados (Data Workflow)
+1. **Ingestão (Ingestion):** Conexão direta com a API da Câmara dos Deputados para extração de dados brutos em tempo real.
+2. **Processamento (Processing):** Filtagem e mapeamento da distribuição partidária para o esquema de dados interno.
+3. **Persistência & Enriquecimento:** Armazenamento em banco relacional, permitindo que o dado público seja enriquecido com metadados de fiscalização (CRUD de monitoramento).
+4. **Entrega (Delivery):** Disponibilização dos dados tratados através de uma API própria, pronta para consumo por ferramentas de BI ou interfaces de usuário.
+
+##  Diferenciais de Análise
+* **Transparência Automática:** Redução da latência entre a atualização dos dados do governo e a disponibilidade para análise interna.
+* **Integridade Relacional:** Uso de SQLite para garantir que cada motivo de monitoramento esteja corretamente vinculado à entidade partidária correspondente.
+* **Escalabilidade de Consulta:** Estrutura pronta para suportar futuras integrações com dashboards de visualização de dados.
+
+##  Organização do Sistema
+* `Câmera Ingestion`: Lógica de consumo da API governamental.
+* `Data Schema`: Definição da estrutura relacional dos partidos e alertas.
+* `Access Layer`: Interface de comunicação para consulta e gestão dos dados.
 
 ---
 
